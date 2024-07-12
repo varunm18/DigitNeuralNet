@@ -1,7 +1,14 @@
 import pygame
+import pygame_widgets
 from pygame_widgets.button import Button
+import math
 
-colors = [[255] * 28 for _ in range(28)]
+WHITE = (255, 255, 255)
+
+colors = [[0] * 28 for _ in range(28)]
+drawing_rect = pygame.Rect(40, 40, 380, 380)
+drawing_pane = pygame.Surface((380, 380))
+drawing_pane.fill(WHITE)
 
 def main():
 
@@ -11,61 +18,77 @@ def main():
     width, height = 720, 500
     screen = pygame.display.set_mode((width, height))
 
-    running = True
-    drawing = False
-
     reset = Button(
         screen,
-        600,
-        40,
-        80,
+        60,
+        430,
+        160,
         40,
 
-        text='Reset',
-        fontSize=50,
-        inactiveColour=(117,150,86),
-        hoverColour=(125,166,79),
-        pressedColour=(128,182,76),
-        radius=20,
-        onClick=lambda: resetColors()
+        text='Clear',
+        fontSize=25,
+        inactiveColour=(255,255,255),
+        hoverColour=(200,200,200),
+        pressedColour=(100,100,100),
+        radius=5,
+        onClick=lambda: clear(drawing_pane)
     )
 
+    classify = Button(
+        screen,
+        240,
+        430,
+        160,
+        40,
+
+        text='Classify',
+        fontSize=25,
+        inactiveColour=(255,255,255),
+        hoverColour=(200,200,200),
+        pressedColour=(100,100,100),
+        radius=5,
+        onClick=lambda: classify()
+    )
+
+    screen.fill((100, 100, 255))
+
+    running = True
+
     while running:
-        # poll for events
-        # pygame.QUIT event means the user clicked X to close your window
-        for event in pygame.event.get():
+        
+        eventList = pygame.event.get()
+        for event in eventList:
             if event.type == pygame.QUIT:
                 running = False
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                drawing = True
-            if event.type == pygame.MOUSEBUTTONUP:
-                drawing = False
-                    
-        if drawing:
-            x, y = pygame.mouse.get_pos()
-            i, j = (int)((x-40)/15), (int)((y-40)/15)
-            if i >= 0 and i < 28 and j >= 0 and j < 28:
-                colors[i][j] = 0
-                if i+1<28:
-                    colors[i+1][j] = 40
-                if j+1<28:
-                    colors[i][j+1] = 40
-                if i+1<28 and j+1<28:
-                    colors[i+1][j+1] = 80
                 
+            if event.type == pygame.MOUSEMOTION:
+                if pygame.mouse.get_pressed()[0]:
+                    last_pos = (event.pos[0]-event.rel[0], event.pos[1]-event.rel[1])
+                    draw_line(drawing_pane, (0, 0, 0), last_pos, pygame.mouse.get_pos())
         
-        for i in range(28):
-            for j in range(28):
-                squareRect = pygame.Rect(40+i*15, 40+j*15, 12, 12)
-                pygame.draw.rect(screen, (colors[i][j], colors[i][j], colors[i][j]), squareRect)
-
-        # flip() the display to put your work on screen
+        pygame_widgets.update(eventList)
+        screen.blit(drawing_pane, (40, 40))
         pygame.display.flip()
 
     pygame.quit()
 
-def resetColors():
-    colors = [[255] * 28 for _ in range(28)]
+# adapted from https://github.com/drewvlaz/draw-mnist/blob/master/main.py
+def draw_line(surface, color, start, end):
+    dy = end[1] - start[1]
+    dx = end[0] - start[0]
+
+    distance = round(math.sqrt(dy**2 + dx**2))
+    for i in range(distance):
+        x, y = start[0]+i/distance*dx, start[1]+i/distance*dy
+        if drawing_rect.collidepoint(x, y):
+            pygame.draw.circle(surface, color, (x - 40, y - 40), 9)
+    
+
+def clear(surface):
+    surface.fill(WHITE)
+
+def classify():
+    pass
 
 if __name__=="__main__":
     main()
