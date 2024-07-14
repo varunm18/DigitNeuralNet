@@ -1,5 +1,5 @@
 .venv
-*.npy
 NNFS.py
 Draw.py
 chat.py
+.gitignore
