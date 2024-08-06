@@ -22,7 +22,7 @@ A Multi Level Perceptron written from scratch. Used for digit classification(MNI
 
 ### Highest Accuracy of 98.31%
 * 784 input, 128 hidden, 128 hidden, and 10 output neurons
-* Activation in order: ReLU, ReLU, Softmax)
+* Activation in order: ReLU, ReLU, Softmax
 * Categorical Cross Entropy loss
 * SGD Optimizer with learning rate of 0.5, decay of 0.0005 and momentum of 0.12
 
