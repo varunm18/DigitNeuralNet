@@ -3,8 +3,8 @@ import numpy as np
 import math
 
 CONVERT = False
-BATCH_SIZE = 64
-EPOCHS = 10
+BATCH_SIZE = 32
+EPOCHS = 201
 
 def main():
     if CONVERT:
@@ -17,7 +17,7 @@ def main():
     net = MLP(layers=[784, 128, 128, 10], 
               activation=[MLP.relu, MLP.relu, MLP.softmax], 
               loss=MLP.categoricalCrossEntropy,
-              optimizer=MLP.Adam(learning_rate=0.003, decay=0.0005))
+              optimizer=MLP.StochasticGradientDescent(learning_rate=0.5, decay=0.0005, momentum=0.12))
 
     # TRAIN
     train_data = np.load("MNISTdata/mnist_train.npy")

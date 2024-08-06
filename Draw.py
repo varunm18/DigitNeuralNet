@@ -119,9 +119,13 @@ def draw_labels():
 def draw_chart(probs):
     predictions.fill(WHITE)
     probabilities.fill(BACKGROUND)
+    pred = np.argmax(probs, axis=1)[0]
     for i in range(10):
         pygame.draw.rect(predictions, (50, 50, 200), (0, 8+i*38, probs[0][i]*220, 20))
-        probabilities.blit(prob_font.render(percent(probs[0][i]), True, BLACK), (5, 2+i*38))
+        if i==pred:
+            probabilities.blit(prob_font.render(percent(probs[0][i]), True, WHITE), (5, 2+i*38))
+        else:
+            probabilities.blit(prob_font.render(percent(probs[0][i]), True, BLACK), (5, 2+i*38))
 
 def percent(prob):
     return str(round(prob*100)) + "%"
@@ -164,7 +168,7 @@ def toggle_view():
         image = 255 - image * 255
         for i in range(len(image)):
             for j in range(len(image[i])):
-                pygame.draw.rect(pixel_pane, (image[i][j], image[i][j], image[i][j]), (int(13.6*j), int(13.6*i), 13, 13))
+                pygame.draw.rect(pixel_pane, (image[i][j], image[i][j], image[i][j]), (int(380/28*j), int(380/28*i), int(380/28*j), int(380/28*i)))
     else:
         toggle.setText("Pixelated")
         pixelated = False

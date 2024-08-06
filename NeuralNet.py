@@ -1,11 +1,6 @@
 import numpy as np
 import pickle
-import time
-import sys
-import nnfs
-from nnfs.datasets import spiral_data
-import warnings
-
+ 
 class Layer:
     def __init__(self, input, output, activation):
         # self.weights = np.random.uniform(-1, 1, (input, output))
@@ -46,7 +41,6 @@ class MLP:
         self.output = output
         self.loss = self.loss_func(output, self.label)
         self.accuracy = np.mean(np.argmax(output, axis=1)==np.argmax(self.label, axis=1))
-        # self.accuracy = np.mean(np.argmax(output, axis=1)==label)
 
         return output
     
@@ -73,8 +67,6 @@ class MLP:
 
             da = np.dot(dz, layer.weights.T)
 
-            # print("dw\n", dw)
-            # print("db\n", db)
             self.optimizer.update(layer)
 
         self.optimizer.post_proccess()
@@ -108,7 +100,6 @@ class MLP:
         if deriv:
             return (-label / input) / len(input) # divide by samples for gradient normalization
         return np.sum(label * -np.log(input))/len(label)
-        # return np.mean(-np.log(input[range(len(input)), label]))
 
 
     # -----OPTIMIZERS-----
@@ -130,7 +121,10 @@ class MLP:
             layer.biases -= self.learning_rate * layer.db
 
         def post_proccess(self):
-            self.steps+=1
+            self.steps+=1  
+        
+        def __str__(self):
+            return f"Base SGD- Learning Rate: {self.original_lr}, Decay: {self.decay}"
     
     # With Momentum
     class StochasticGradientDescent(Optimizer):
@@ -154,6 +148,9 @@ class MLP:
 
             layer.weights -= dw
             layer.biases -= db
+        
+        def __str__(self):
+            return f"SGD- Learning Rate: {self.original_lr}, Decay: {self.decay}, Momentum: {self.momentum}"
 
     # With Cache
     class RMSProp(Optimizer):
@@ -173,6 +170,9 @@ class MLP:
 
             layer.weights -= self.learning_rate * layer.dw / (np.sqrt(layer.weight_cache) + self.epsilon)
             layer.biases -= self.learning_rate * layer.db / (np.sqrt(layer.bias_cache) + self.epsilon)
+        
+        def __str__(self):
+            return f"RMSProp- Learning Rate: {self.original_lr}, Decay: {self.decay}, Epsilon: {self.epsilon}, Rho: {self.rho}"
 
     # Corrected Momentum and Cache
     class Adam(Optimizer):
@@ -206,11 +206,19 @@ class MLP:
             # Update
             layer.weights -= self.learning_rate * weight_momentum / (np.sqrt(weight_cache) + self.epsilon)
             layer.biases -= self.learning_rate * bias_momentum / (np.sqrt(bias_cache) + self.epsilon)
-
+        
+        def __str__(self):
+            return f"Adam- Learning Rate: {self.original_lr}, Decay: {self.decay}, Epsilon: {self.epsilon}, Beta 1: {self.beta1}, Beta 2: {self.beta2}"
 
     
     def print_iteration(self, epoch, iter):
         print(f"Epoch {epoch}, Iteration {iter}, Loss: {self.loss}, Accuracy: {self.accuracy}")
+    
+    def print_details(self):
+        for layer in self.layers:
+            print(f"Shape: {layer.weights.shape[0]} to {layer.weights.shape[1]}, Activation: {layer.activation_func}")
+        print(f"Loss: {self.loss_func}")
+        print(f"{self.optimizer}")
 
     def __str__(self):
         str = ""
@@ -225,29 +233,3 @@ class MLP:
     def load(path):
         with open(path+".pickle", "rb") as infile:
             return pickle.load(infile)
-
-# nnfs.init()
-# X, y = spiral_data(samples=100, classes=3)
-# # # X = X[:5]
-# # # y = y[:5]
-
-
-# net = MLP(layers=[2, 64, 3], 
-#           activation=[MLP.relu, MLP.softmax], 
-#           loss=MLP.categoricalCrossEntropy, 
-#           optimizer=MLP.Adam(learning_rate=0.05, decay=5e-7))
-
-# for epoch in range(10001):
-#     output = net.forward(X, y)
-#     if not epoch % 100: 
-#         print(f'epoch: {epoch}, ' +
-#         f'acc: {net.accuracy:.3f}, ' + f'loss: {net.loss:.3f}')
-#     net.backward()
-
-# sgd = MLP.StochasticGradientDescent(learning_rate=1, decay=0.1, momentum=0.9)
-
-# net.layers[0].weights = np.array([[0.2, 0.8, -0.5, 1], [0.5, -0.91, 0.26, -0.5], [-0.26, -0.27, 0.17, 0.87]]).T
-# net.layers[1].weights = np.array([[0.1, -0.14, 0.5], [-0.5, 0.12, -0.33], [-0.44, 0.73, -0.13]]).T
-# net.layers[0].biases = np.array([[2, 3, 0.5]])
-# net.layers[1].biases = np.array([[-1, 2, -0.5]])
-# print(net.forward([[1, 2, 3, 2.5], [2, 5, -1, 2], [-1.5, 2.7, 3.3, -0.8]]))
